@@ -1,0 +1,4 @@
+interface:
+  display_name: "Colab calculating machine"
+  short_description: "Run scoped Colab calculations and retrieve verified artifacts"
+  default_prompt: "Use $colab-calculating-machine to run this approved computation on an existing Colab session and validate the retrieved results."
