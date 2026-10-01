@@ -36,7 +36,9 @@ def resolve_cli(value=None):
     path = Path(value)
     if path.parent == Path('.') and not str(value).startswith('.'):
         found = shutil.which(str(value))
-        path = Path(found) if found else path
+        if found is None: raise ValueError('Colab CLI not found on PATH')
+        path = Path(found)
+    path = path.absolute()
     if not path.is_file() or not os.access(path, os.X_OK): raise ValueError('Colab CLI not found or not executable')
     return path
 

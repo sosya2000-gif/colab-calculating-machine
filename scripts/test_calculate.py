@@ -272,6 +272,42 @@ class LiveBehaviour(Base):
 
 
 class CliAndTimezone(Base):
+    def test_explicit_relative_cli_runs_without_path_lookup(self):
+        previous = os.getcwd()
+        try:
+            os.chdir(self.base)
+            self.assertEqual(calculate.resolve_cli('./fake_colab.sh'), self.cli)
+            root = calculate.run(copy.deepcopy(self.plan), cli='./fake_colab.sh')
+            self.assertEqual(self.receipt(root)['status'], 'PASS_EXECUTION')
+            self.assertEqual(self.verbs(), ['sessions', 'exec', 'sessions'])
+        finally:
+            os.chdir(previous)
+
+    def test_explicit_relative_cli_ignores_same_name_on_path(self):
+        other = self.base / 'other'; other.mkdir()
+        decoy = other / self.cli.name
+        decoy.write_text('#!/bin/sh\nexit 99\n'); decoy.chmod(0o755)
+        previous = os.getcwd()
+        try:
+            os.chdir(self.base)
+            with patch.dict(os.environ, {'PATH': str(other) + os.pathsep + os.environ['PATH']}):
+                root = calculate.run(copy.deepcopy(self.plan), cli='./fake_colab.sh')
+            self.assertEqual(self.receipt(root)['status'], 'PASS_EXECUTION')
+            self.assertEqual(self.verbs(), ['sessions', 'exec', 'sessions'])
+        finally:
+            os.chdir(previous)
+
+    def test_bare_cli_missing_from_path_does_not_use_cwd_file(self):
+        previous = os.getcwd()
+        try:
+            os.chdir(self.base)
+            with patch.dict(os.environ, {'PATH': '/usr/bin:/bin'}):
+                with self.assertRaises(ValueError):
+                    calculate.run(copy.deepcopy(self.plan), cli='fake_colab.sh')
+            self.assertFalse((self.base / 'results').exists())
+        finally:
+            os.chdir(previous)
+
     def test_cli_resolution_from_argument_env_and_path(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop('COLAB_CLI', None)
