@@ -4,6 +4,8 @@ An agent skill and small Python helper that runs **one explicitly approved compu
 
 It is deliberately conservative: it never creates, stops or restarts a runtime, never retries, and treats Colab as a third-party cloud.
 
+The Colab backend is specific; the execution-contract pattern is general.
+
 > Not affiliated with or endorsed by Google. Use of Colab is subject to Google's terms. You are responsible for what you upload.
 
 ## Why the "PASS" is not just an exit code
